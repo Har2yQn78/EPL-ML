@@ -1,0 +1,10 @@
+pandas
+scikit-learn
+python-dotenv
+fastapi
+uvicorn
+gunicorn
+jupyter
+cassandra-driver
+pypyr
+numpy
