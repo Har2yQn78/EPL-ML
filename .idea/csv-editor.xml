@@ -10,6 +10,13 @@
             </Attribute>
           </value>
         </entry>
+        <entry key="\dataset\epl_final.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
         <entry key="\dataset\mental_health_score_prediction.csv">
           <value>
             <Attribute>

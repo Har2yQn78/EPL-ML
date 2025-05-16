@@ -8,5 +8,4 @@ jupyter
 cassandra-driver
 pypyr
 numpy
-matplotlib
-seaborn
+xgboost
