@@ -180,10 +180,15 @@ async def predict_match(request: PredictionRequest) -> Dict[str, float]:
     else:
         print(f"Predicting for date {request.match_date} within historical range ({earliest_history_date.date()} to {latest_history_date.date()}).")
 
-    # FIX APPLIED HERE: Use f"'{t}'" instead of f\"'{t}'\"
+    # FIX APPLIED HERE: Construct the string for the list of invalid teams separately
     if request.home_team not in all_teams_in_history or request.away_team not in all_teams_in_history:
          invalid_teams = [team for team in [request.home_team, request.away_team] if team not in all_teams_in_history]
-         raise HTTPException(status_code=400, detail=f"One or both teams ({', '.join(f"'{t}'" for t in invalid_teams)}) not found in historical data.")
+         # Build the inner string like "'Team1', 'Team2'"
+         invalid_teams_joined = ', '.join(f"'{t}'" for t in invalid_teams)
+         # Embed the resulting string in the outer f-string, adding the literal parentheses
+         detail_message = f"One or both teams ({invalid_teams_joined}) not found in historical data."
+         raise HTTPException(status_code=400, detail=detail_message)
+
 
     if request.home_team == request.away_team:
          raise HTTPException(status_code=400, detail="Home and Away teams cannot be the same.")
