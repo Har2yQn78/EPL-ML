@@ -8,4 +8,5 @@ jupyter
 cassandra-driver
 pypyr
 numpy
-xgboost
+joblib
+pydantic
