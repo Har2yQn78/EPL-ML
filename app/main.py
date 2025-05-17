@@ -10,13 +10,10 @@ from datetime import date
 import pandas as pd
 import joblib
 import numpy as np
-from typing import Dict, List, Union, Any # Import Any
-
-# Import the correct Pipeline type from scikit-learn
-from sklearn.pipeline import Pipeline # <-- Correct Import
+from typing import Dict, List, Union, Any
+from sklearn.pipeline import Pipeline
 
 try:
-    # Assuming utils.py is in the same directory as main.py
     from .utils import prepare_features_and_predict
 except ImportError:
     def prepare_features_and_predict(*args, **kwargs):
@@ -51,10 +48,8 @@ EXPECTED_FEATURES = [
   f'AwayAvgLast{ROLLING_WINDOW_SIZE}_Points_Overall'
 ]
 
-# Corrected type hint: Use Pipeline from sklearn.pipeline
 loaded_pipeline: Union[Pipeline, None] = None
-# Corrected type hint: Use Any for imputer as exact type is internal/less reliable
-loaded_imputer: Union[Any, None] = None # Use Any for flexibility
+loaded_imputer: Union[Any, None] = None
 historical_df_sorted: Union[pd.DataFrame, None] = None
 all_teams_in_history: Union[List[str], None] = None
 
@@ -99,7 +94,6 @@ def load_assets():
         loaded_pipeline = None
     else:
         try:
-            # When loaded, this will be an instance of sklearn.pipeline.Pipeline
             loaded_pipeline = joblib.load(MODEL_PIPELINE_PATH)
             print(f"Model pipeline loaded successfully from {MODEL_PIPELINE_PATH}")
         except Exception as e:
@@ -111,7 +105,6 @@ def load_assets():
          loaded_imputer = None
     else:
         try:
-            # When loaded, this will be the imputer object
             loaded_imputer = joblib.load(IMPUTER_PATH)
             print(f"Imputer loaded successfully from {IMPUTER_PATH}")
         except Exception as e:
@@ -151,12 +144,10 @@ def load_assets():
             historical_df_sorted = None
             all_teams_in_history = None
 
-    # Feature Count Check
     if loaded_pipeline is not None and hasattr(loaded_pipeline, 'steps'):
          classifier_step = loaded_pipeline.steps[-1][1] if loaded_pipeline.steps else None
          if hasattr(classifier_step, 'n_features_in_'):
             print(f"Classifier step expects {classifier_step.n_features_in_} features based on n_features_in_.")
-            # Added more robust check that classifier_step is not None before accessing named_steps
             if classifier_step and hasattr(loaded_pipeline.named_steps['classifier'], 'n_features_in_') and loaded_pipeline.named_steps['classifier'].n_features_in_ != len(EXPECTED_FEATURES):
                print("WARNING: Feature count mismatch between loaded model and EXPECTED_FEATURES list.")
                print(f"Model expects {loaded_pipeline.named_steps['classifier'].n_features_in_}, EXPECTED_FEATURES has {len(EXPECTED_FEATURES)}.")
@@ -194,9 +185,7 @@ async def predict_match(request: PredictionRequest) -> Dict[str, float]:
 
     if request.home_team not in all_teams_in_history or request.away_team not in all_teams_in_history:
          invalid_teams = [team for team in [request.home_team, request.away_team] if team not in all_teams_in_history]
-         # Construct the string for the list of invalid teams separately
          invalid_teams_joined = ', '.join(f"'{t}'" for t in invalid_teams)
-         # Embed the resulting string in the outer f-string, adding the literal parentheses
          detail_message = f"One or both teams ({invalid_teams_joined}) not found in historical data."
          raise HTTPException(status_code=400, detail=detail_message)
 
