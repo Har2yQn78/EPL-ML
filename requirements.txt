@@ -10,3 +10,4 @@ pypyr
 numpy
 joblib
 pydantic
+python-dotenv
