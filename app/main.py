@@ -16,7 +16,7 @@ try:
     from .utils import prepare_features_and_predict
 except ImportError:
     def prepare_features_and_predict(*args, **kwargs):
-        raise NotImplementedError("Utility function 'prepare_features_and_predict' not loaded.")
+        raise NotImplementedError("Utility function 'prepare_features_and_predict' not loaded. Make sure utils.py exists.")
 
 MODEL_DIR = "model"
 DATASET_PATH = "dataset/EPL-2015-2025.csv"
@@ -67,6 +67,7 @@ if allowed_origins_str:
 else:
     print("WARNING: ALLOWED_ORIGINS environment variable is not set. CORS will not allow any cross-origin requests.")
     print("Set ALLOWED_ORIGINS in your .env file (local) or Render environment settings (deployment).")
+
 
 app.add_middleware(
     CORSMiddleware,
@@ -146,15 +147,16 @@ def load_assets():
          classifier_step = loaded_pipeline.steps[-1][1] if loaded_pipeline.steps else None
          if hasattr(classifier_step, 'n_features_in_'):
             print(f"Classifier step expects {classifier_step.n_features_in_} features based on n_features_in_.")
-            if classifier_step.n_features_in_ != len(EXPECTED_FEATURES):
+            if loaded_pipeline.named_steps['classifier'].n_features_in_ != len(EXPECTED_FEATURES):
                print("WARNING: Feature count mismatch between loaded model and EXPECTED_FEATURES list.")
-               print(f"Model expects {classifier_step.n_features_in_}, EXPECTED_FEATURES has {len(EXPECTED_FEATURES)}.")
+               print(f"Model expects {loaded_pipeline.named_steps['classifier'].n_features_in_}, EXPECTED_FEATURES has {len(EXPECTED_FEATURES)}.")
          else:
             print("Warning: Final pipeline step does not have 'n_features_in_' attribute for feature count check.")
     elif loaded_pipeline is not None:
          print("Warning: Loaded pipeline does not have a standard 'steps' attribute for feature count check.")
     else:
          print("Model pipeline not loaded, skipping feature count check.")
+
 
 @app.get("/")
 async def read_root():
@@ -178,9 +180,10 @@ async def predict_match(request: PredictionRequest) -> Dict[str, float]:
     else:
         print(f"Predicting for date {request.match_date} within historical range ({earliest_history_date.date()} to {latest_history_date.date()}).")
 
+    # FIX APPLIED HERE: Use f"'{t}'" instead of f\"'{t}'\"
     if request.home_team not in all_teams_in_history or request.away_team not in all_teams_in_history:
          invalid_teams = [team for team in [request.home_team, request.away_team] if team not in all_teams_in_history]
-         raise HTTPException(status_code=400, detail=f"One or both teams ({', '.join(f\"'{t}'\" for t in invalid_teams)}) not found in historical data.")
+         raise HTTPException(status_code=400, detail=f"One or both teams ({', '.join(f"'{t}'" for t in invalid_teams)}) not found in historical data.")
 
     if request.home_team == request.away_team:
          raise HTTPException(status_code=400, detail="Home and Away teams cannot be the same.")
@@ -199,6 +202,7 @@ async def predict_match(request: PredictionRequest) -> Dict[str, float]:
     except Exception as e:
         print(f"Error during feature preparation or prediction: {e}")
         raise HTTPException(status_code=500, detail=f"Internal Server Error: Failed to generate prediction features or probabilities. Details: {e}")
+
 
     if not isinstance(predicted_probabilities, dict) or not all(key in predicted_probabilities for key in ['H', 'D', 'A']):
          print(f"Warning: Prediction result in unexpected format: {predicted_probabilities}")
