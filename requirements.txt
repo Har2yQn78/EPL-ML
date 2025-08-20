@@ -1,13 +1,14 @@
 pandas
-scikit-learn
 python-dotenv
 fastapi
 uvicorn
 gunicorn
 jupyter
-cassandra-driver
 pypyr
 numpy
 joblib
 pydantic
 python-dotenv
+requests
+penaltyblog
+scikit-learn
