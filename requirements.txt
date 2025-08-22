@@ -16,3 +16,6 @@ understat
 nest-asyncio
 aiohttp
 pyarrow
+sqlalchemy
+python-dotenv
+psycopg2-binary
