@@ -12,3 +12,7 @@ python-dotenv
 requests
 penaltyblog
 scikit-learn
+understat
+nest-asyncio
+aiohttp
+pyarrow
