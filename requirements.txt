@@ -1,7 +1,7 @@
 pandas
 python-dotenv
 fastapi
-uvicorn
+uvicorn[standard]
 gunicorn
 jupyter
 pypyr
@@ -12,3 +12,10 @@ python-dotenv
 requests
 penaltyblog
 scikit-learn
+understat
+nest-asyncio
+aiohttp
+pyarrow
+sqlalchemy
+python-dotenv
+psycopg2-binary
