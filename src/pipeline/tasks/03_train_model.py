@@ -4,20 +4,26 @@ import os
 import joblib
 from sklearn.metrics import log_loss, accuracy_score, classification_report
 from sklearn.model_selection import train_test_split
+from src.core.database import engine
 
 
 def train_model():
     print("Step 3: Training Final Model")
-    input_path = "data/processed/final_feature_dataset.parquet"
-    df_features = pd.read_parquet(input_path)
+
+    print("Loading data from 'features' table...")
+    try:
+        df_features = pd.read_sql("SELECT * FROM features", engine)
+    except Exception as e:
+        print(f"Error: Could not load data from database. {e}")
+        return
 
     def get_result(row):
         if row['goals_home'] > row['goals_away']:
-            return 1
+            return 1  # Home Win
         elif row['goals_home'] < row['goals_away']:
-            return 2
+            return 2  # Away Win
         else:
-            return 0
+            return 0  # Draw
 
     df_features['result'] = df_features.apply(get_result, axis=1)
 
@@ -32,20 +38,22 @@ def train_model():
 
     best_params = {'gamma': 0.2, 'learning_rate': 0.01, 'max_depth': 3, 'n_estimators': 200}
 
+    print("\nPerforming a final performance check on a test split...")
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42, stratify=y)
     eval_model = xgb.XGBClassifier(objective='multi:softprob', num_class=3, seed=42, **best_params)
     eval_model.fit(X_train, y_train)
+
     y_pred_proba = eval_model.predict_proba(X_test)
     loss = log_loss(y_test, y_pred_proba)
     accuracy = accuracy_score(y_test, eval_model.predict(X_test))
-    print(f"\n--- Final Model Performance Check ---")
-    print(f"Log Loss: {loss:.4f} / Accuracy: {accuracy:.2%}")
+    print(f"\n--- Final Model Performance (on Test Set) ---")
+    print(f"Log Loss: {loss:.4f}")
+    print(f"Accuracy: {accuracy:.2%}")
 
-    print("\nRetraining model on all available data for deployment...")
+    print(f"\nRetraining final model on all {len(X)} available matches for deployment...")
     final_production_model = xgb.XGBClassifier(objective='multi:softprob', num_class=3, seed=42, **best_params)
     final_production_model.fit(X, y)
 
-    # Save the final production model
     output_dir = "models"
     os.makedirs(output_dir, exist_ok=True)
     model_path = os.path.join(output_dir, "v4_model.joblib")
