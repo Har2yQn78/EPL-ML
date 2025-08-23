@@ -19,3 +19,5 @@ pyarrow
 sqlalchemy
 python-dotenv
 psycopg2-binary
+beautifulsoup4
+lxml
